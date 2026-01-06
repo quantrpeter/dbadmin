@@ -220,6 +220,19 @@
             .table-actions a.delete {
                 color: #f44336;
             }
+            .database-card {
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 16px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .database-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+                border-color: #5c6bc0;
+            }
         </style>
     </head>
     <body>
@@ -257,6 +270,16 @@
                                 @endforeach
                             </select>
                         </div>
+                    @endif
+                    
+                    <!-- Deselect Database Button -->
+                    @if(session('current_database'))
+                        <form action="{{ route('database.deselect') }}" method="POST" style="margin: 0; flex-shrink: 0;">
+                            @csrf
+                            <button type="submit" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;" title="Deselect current database">
+                                <i class="material-icons" style="line-height: inherit;">close</i>
+                            </button>
+                        </form>
                     @endif
                     
                     <!-- Disconnect Button -->
@@ -306,9 +329,7 @@
                                 <div class="info-item">
                                     <label>Host</label>
                                     <div class="value">{{ session('db_host') }}</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>Port</label>
+                                </div>Quick Actions>
                                     <div class="value">{{ session('db_port') }}</div>
                                 </div>
                                 <div class="info-item">
@@ -326,22 +347,65 @@
                         <div class="info-card" style="background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);">
                             <h5 style="margin-top: 0;">Quick Actions</h5>
                             <div class="quick-actions">
-                                <div class="action-card">
+                                <div class="action-card" onclick="$('#createDatabaseModal').modal('open')">
                                     <i class="material-icons">add_circle</i>
                                     <h6>Create Database</h6>
                                     <p>Add a new database</p>
                                 </div>
-                                <div class="action-card">
-                                    <i class="material-icons">code</i>
-                                    <h6>SQL Query</h6>
-                                    <p>Run custom queries</p>
+                                <div class="action-card" onclick="window.location.href='{{ route('users.list') }}'">
+                                    <i class="material-icons">group</i>
+                                    <h6>Manage Users</h6>
+                                    <p>Create and manage users</p>
                                 </div>
-                                <div class="action-card">
-                                    <i class="material-icons">cloud_upload</i>
-                                    <h6>Import</h6>
-                                    <p>Import SQL file</p>
+                                <div class="action-card" onclick="$('#dropDatabaseModal').modal('open')">
+                                    <i class="material-icons">delete</i>
+                                    <h6>Drop Database</h6>
+                                    <p>Remove a database</p>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Available Databases -->
+                        <div class="info-card">
+                            <h5 style="margin-top: 0; display: flex; align-items: center; justify-content: space-between;">
+                                <span>
+                                    <i class="material-icons" style="vertical-align: middle; color: #5c6bc0;">storage</i>
+                                    Available Databases
+                                </span>
+                                <span style="font-size: 14px; color: #757575; font-weight: 400;">{{ count($databases) }} database(s)</span>
+                            </h5>
+                            
+                            @if(count($databases) > 0)
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 20px;">
+                                    @foreach($databases as $db)
+                                        <div class="database-card" onclick="window.location.href='{{ route('database.select', ['database' => $db]) }}'">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                                <div style="width: 40px; height: 40px; background: #e8eaf6; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <i class="material-icons" style="color: #5c6bc0; font-size: 20px;">storage</i>
+                                                </div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <h6 style="margin: 0; font-size: 16px; font-weight: 500; color: #424242; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $db }}</h6>
+                                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #757575;">Click to select</p>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                                                <button onclick="event.stopPropagation(); window.location.href='{{ route('database.select', ['database' => $db]) }}'" class="btn-small waves-effect waves-light indigo lighten-1" style="flex: 1; height: 32px; line-height: 32px; padding: 0 12px;">
+                                                    <i class="material-icons left" style="font-size: 16px;">folder_open</i>
+                                                    Open
+                                                </button>
+                                                <button onclick="event.stopPropagation(); dropDatabaseFromCard('{{ $db }}')" class="btn-small waves-effect waves-light red lighten-1" style="height: 32px; line-height: 32px; padding: 0 12px;">
+                                                    <i class="material-icons" style="font-size: 16px;">delete</i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div style="text-align: center; padding: 40px; color: #757575;">
+                                    <i class="material-icons" style="font-size: 48px; color: #bdbdbd; margin-bottom: 12px;">inbox</i>
+                                    <p style="margin: 0;">No databases found. Create one to get started!</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -352,7 +416,12 @@
 
                         <!-- Tables Overview -->
                         <div class="info-card">
-                            <h5 style="margin-top: 0;">Tables in this database</h5>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h5 style="margin: 0;">Tables in this database</h5>
+                                <button class="btn waves-effect waves-light indigo lighten-1" onclick="$('#createTableModal').modal('open')">
+                                    <i class="material-icons left">add</i>Create Table
+                                </button>
+                            </div>
                             @if(isset($tables) && count($tables) > 0)
                                 <table class="highlight responsive-table">
                                     <thead>
@@ -370,8 +439,7 @@
                                                 </td>
                                                 <td class="table-actions">
                                                     <a href="{{ route('database.table', ['table' => $table]) }}">Browse</a>
-                                                    <a href="#">Structure</a>
-                                                    <a href="#" class="delete">Drop</a>
+                                                    <a href="#" onclick="event.preventDefault(); dropTableFromList('{{ $table }}')" class="delete">Drop</a>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -381,6 +449,9 @@
                                 <div style="text-align: center; padding: 40px; color: #757575;">
                                     <i class="material-icons" style="font-size: 48px; margin-bottom: 10px;">inbox</i>
                                     <p>No tables found in this database</p>
+                                    <button class="btn waves-effect waves-light indigo lighten-1" onclick="$('#createTableModal').modal('open')" style="margin-top: 16px;">
+                                        <i class="material-icons left">add</i>Create Your First Table
+                                    </button>
                                 </div>
                             @endif
                         </div>
@@ -389,10 +460,161 @@
             </main>
         </div>
 
+        <!-- Create Database Modal -->
+        <div id="createDatabaseModal" class="modal" style="max-width: 500px;">
+            <div class="modal-content">
+                <h5 style="margin-top: 0; color: #5c6bc0;">
+                    <i class="material-icons" style="vertical-align: middle;">add_circle</i>
+                    Create New Database
+                </h5>
+                <form action="{{ route('database.create') }}" method="POST">
+                    @csrf
+                    <div class="input-field">
+                        <input id="database_name" name="database_name" type="text" required pattern="[a-zA-Z0-9_]+" maxlength="64">
+                        <label for="database_name">Database Name</label>
+                        <span class="helper-text">Only letters, numbers, and underscores allowed</span>
+                    </div>
+                    <div class="input-field">
+                        <select id="charset" name="charset">
+                            <option value="utf8mb4" selected>utf8mb4</option>
+                            <option value="utf8">utf8</option>
+                            <option value="latin1">latin1</option>
+                        </select>
+                        <label>Character Set</label>
+                    </div>
+                    <div class="input-field">
+                        <select id="collation" name="collation">
+                            <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci</option>
+                            <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+                            <option value="utf8_general_ci">utf8_general_ci</option>
+                        </select>
+                        <label>Collation</label>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 0 0 0; margin-top: 20px;">
+                        <button type="button" class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+                        <button type="submit" class="waves-effect waves-light btn indigo lighten-1">
+                            <i class="material-icons left">add</i>Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Drop Database Modal -->
+        <div id="dropDatabaseModal" class="modal" style="max-width: 500px;">
+            <div class="modal-content">
+                <h5 style="margin-top: 0; color: #f44336;">
+                    <i class="material-icons" style="vertical-align: middle;">warning</i>
+                    Drop Database
+                </h5>
+                <p style="color: #757575;">Select a database to permanently delete. This action cannot be undone!</p>
+                <form id="dropDatabaseForm" method="POST">
+                    @csrf
+                    <div class="input-field">
+                        <select id="drop_database_select" name="database" required>
+                            <option value="" disabled selected>Choose database</option>
+                            @if(isset($databases))
+                                @foreach($databases as $db)
+                                    <option value="{{ $db }}">{{ $db }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <label>Database to Drop</label>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 0 0 0; margin-top: 20px;">
+                        <button type="button" class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+                        <button type="submit" class="waves-effect waves-light btn red">
+                            <i class="material-icons left">delete</i>Drop
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Table Modal -->
+        <div id="createTableModal" class="modal" style="max-width: 700px; max-height: 90%;">
+            <div class="modal-content">
+                <h5 style="margin-top: 0; color: #5c6bc0;">
+                    <i class="material-icons" style="vertical-align: middle;">table_chart</i>
+                    Create New Table
+                </h5>
+                <form action="{{ route('table.create') }}" method="POST" id="createTableForm">
+                    @csrf
+                    <div class="input-field">
+                        <input id="table_name" name="table_name" type="text" required pattern="[a-zA-Z0-9_]+" maxlength="64">
+                        <label for="table_name">Table Name</label>
+                        <span class="helper-text">Only letters, numbers, and underscores allowed</span>
+                    </div>
+
+                    <h6 style="color: #757575; font-size: 14px; font-weight: 600; margin-top: 20px; margin-bottom: 10px;">Columns:</h6>
+                    <div id="columnsContainer">
+                        <!-- Initial column row -->
+                        <div class="column-row" style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 8px; position: relative;">
+                            <div class="row" style="margin-bottom: 0;">
+                                <div class="input-field col s3" style="margin-top: 0;">
+                                    <input type="text" name="columns[0][name]" required placeholder="Column Name" style="margin-bottom: 0;">
+                                </div>
+                                <div class="input-field col s3" style="margin-top: 0;">
+                                    <select name="columns[0][type]" required style="display: block;">
+                                        <option value="INT">INT</option>
+                                        <option value="VARCHAR">VARCHAR</option>
+                                        <option value="TEXT">TEXT</option>
+                                        <option value="DATE">DATE</option>
+                                        <option value="DATETIME">DATETIME</option>
+                                        <option value="TIMESTAMP">TIMESTAMP</option>
+                                        <option value="BIGINT">BIGINT</option>
+                                        <option value="DECIMAL">DECIMAL</option>
+                                        <option value="BOOLEAN">BOOLEAN</option>
+                                    </select>
+                                </div>
+                                <div class="input-field col s2" style="margin-top: 0;">
+                                    <input type="text" name="columns[0][length]" placeholder="Length" style="margin-bottom: 0;">
+                                </div>
+                                <div class="col s4" style="padding-top: 10px;">
+                                    <p style="margin: 0 0 5px 0;">
+                                        <label>
+                                            <input type="checkbox" name="columns[0][nullable]" value="1" />
+                                            <span style="font-size: 12px;">Nullable</span>
+                                        </label>
+                                    </p>
+                                    <p style="margin: 0 0 5px 0;">
+                                        <label>
+                                            <input type="checkbox" name="columns[0][primary]" value="1" />
+                                            <span style="font-size: 12px;">Primary Key</span>
+                                        </label>
+                                    </p>
+                                    <p style="margin: 0;">
+                                        <label>
+                                            <input type="checkbox" name="columns[0][auto_increment]" value="1" />
+                                            <span style="font-size: 12px;">Auto Increment</span>
+                                        </label>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-small waves-effect waves-light indigo lighten-1" onclick="addColumnRow()" style="margin-top: 10px;">
+                        <i class="material-icons left" style="font-size: 18px;">add</i>Add Column
+                    </button>
+
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 0 0 0; margin-top: 20px;">
+                        <button type="button" class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+                        <button type="submit" class="waves-effect waves-light btn indigo lighten-1">
+                            <i class="material-icons left">add</i>Create Table
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <script>
             $(document).ready(function(){
                 // Initialize Material components
                 M.AutoInit();
+                
+                // Initialize modals
+                $('.modal').modal();
                 
                 // Initialize dropdown for database selection
                 $('select').formSelect();
@@ -416,6 +638,16 @@
                     }
                 });
                 
+                // Handle drop database form submission
+                $('#dropDatabaseForm').on('submit', function(e) {
+                    e.preventDefault();
+                    var database = $('#drop_database_select').val();
+                    if (database && confirm('Are you sure you want to drop database "' + database + '"? This action cannot be undone!')) {
+                        this.action = '{{ url("/database") }}/' + encodeURIComponent(database) + '/drop';
+                        this.submit();
+                    }
+                });
+                
                 // Add smooth hover effects
                 $('.action-card').hover(
                     function() {
@@ -426,6 +658,108 @@
                     }
                 );
             });
+
+            // Function to drop database from card
+            function dropDatabaseFromCard(database) {
+                if (confirm('Are you sure you want to drop database "' + database + '"? This action cannot be undone!')) {
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url("/database") }}/' + encodeURIComponent(database) + '/drop';
+                    
+                    var csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfToken);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+
+            // Function to drop table from list
+            function dropTableFromList(table) {
+                if (confirm('Are you sure you want to drop table "' + table + '"? This action cannot be undone!')) {
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ url("/table") }}/' + encodeURIComponent(table) + '/drop';
+                    
+                    var csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfToken);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+
+            // Column row counter for create table form
+            let columnRowCount = 1;
+
+            // Function to add column row in create table modal
+            function addColumnRow() {
+                const container = document.getElementById('columnsContainer');
+                const newRow = document.createElement('div');
+                newRow.className = 'column-row';
+                newRow.style.cssText = 'background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 8px; position: relative;';
+                
+                newRow.innerHTML = `
+                    <div class="row" style="margin-bottom: 0;">
+                        <div class="input-field col s3" style="margin-top: 0;">
+                            <input type="text" name="columns[${columnRowCount}][name]" required placeholder="Column Name" style="margin-bottom: 0;">
+                        </div>
+                        <div class="input-field col s3" style="margin-top: 0;">
+                            <select name="columns[${columnRowCount}][type]" required style="display: block;">
+                                <option value="INT">INT</option>
+                                <option value="VARCHAR">VARCHAR</option>
+                                <option value="TEXT">TEXT</option>
+                                <option value="DATE">DATE</option>
+                                <option value="DATETIME">DATETIME</option>
+                                <option value="TIMESTAMP">TIMESTAMP</option>
+                                <option value="BIGINT">BIGINT</option>
+                                <option value="DECIMAL">DECIMAL</option>
+                                <option value="BOOLEAN">BOOLEAN</option>
+                            </select>
+                        </div>
+                        <div class="input-field col s2" style="margin-top: 0;">
+                            <input type="text" name="columns[${columnRowCount}][length]" placeholder="Length" style="margin-bottom: 0;">
+                        </div>
+                        <div class="col s3" style="padding-top: 10px;">
+                            <p style="margin: 0 0 5px 0;">
+                                <label>
+                                    <input type="checkbox" name="columns[${columnRowCount}][nullable]" value="1" />
+                                    <span style="font-size: 12px;">Nullable</span>
+                                </label>
+                            </p>
+                            <p style="margin: 0 0 5px 0;">
+                                <label>
+                                    <input type="checkbox" name="columns[${columnRowCount}][primary]" value="1" />
+                                    <span style="font-size: 12px;">Primary Key</span>
+                                </label>
+                            </p>
+                            <p style="margin: 0;">
+                                <label>
+                                    <input type="checkbox" name="columns[${columnRowCount}][auto_increment]" value="1" />
+                                    <span style="font-size: 12px;">Auto Increment</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col s1" style="padding-top: 10px;">
+                            <button type="button" class="btn-small red lighten-1" onclick="this.closest('.column-row').remove()" style="padding: 0 8px;">
+                                <i class="material-icons" style="font-size: 18px;">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(newRow);
+                columnRowCount++;
+                
+                // Reinitialize selects
+                $('select').formSelect();
+            }
         </script>
     </body>
 </html>

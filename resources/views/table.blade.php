@@ -155,9 +155,21 @@
                 
                 <!-- Right side navigation -->
                 <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="btn waves-effect waves-light white" onclick="$('#renameTableModal').modal('open')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                        <i class="material-icons left" style="line-height: inherit;">edit</i>
+                        Rename
+                    </button>
+                    <button class="btn waves-effect waves-light white" onclick="$('#manageColumnsModal').modal('open')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                        <i class="material-icons left" style="line-height: inherit;">view_column</i>
+                        Manage Columns
+                    </button>
+                    <button class="btn waves-effect waves-light red lighten-1" onclick="dropCurrentTable()" style="height: 36px; line-height: 36px; padding: 0 16px;">
+                        <i class="material-icons left" style="line-height: inherit;">delete</i>
+                        Drop Table
+                    </button>
                     <a href="{{ route('database.main') }}" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
                         <i class="material-icons left" style="line-height: inherit;">arrow_back</i>
-                        Back to Dashboard
+                        Back
                     </a>
                 </div>
             </div>
@@ -248,11 +260,150 @@
             </main>
         </div>
 
+        <!-- Rename Table Modal -->
+        <div id="renameTableModal" class="modal" style="max-width: 500px;">
+            <div class="modal-content">
+                <h5 style="margin-top: 0; color: #5c6bc0;">
+                    <i class="material-icons" style="vertical-align: middle;">edit</i>
+                    Rename Table
+                </h5>
+                <form action="{{ route('table.rename', ['table' => $table]) }}" method="POST">
+                    @csrf
+                    <div class="input-field">
+                        <input id="current_table_name" type="text" value="{{ $table }}" disabled>
+                        <label for="current_table_name">Current Table Name</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="new_name" name="new_name" type="text" required pattern="[a-zA-Z0-9_]+" maxlength="64">
+                        <label for="new_name">New Table Name</label>
+                        <span class="helper-text">Only letters, numbers, and underscores allowed</span>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 0 0 0; margin-top: 20px;">
+                        <button type="button" class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+                        <button type="submit" class="waves-effect waves-light btn indigo lighten-1">
+                            <i class="material-icons left">save</i>Rename
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Manage Columns Modal -->
+        <div id="manageColumnsModal" class="modal" style="max-width: 700px; max-height: 90%;">
+            <div class="modal-content">
+                <h5 style="margin-top: 0; color: #5c6bc0;">
+                    <i class="material-icons" style="vertical-align: middle;">view_column</i>
+                    Manage Columns - {{ $table }}
+                </h5>
+                
+                <!-- Add Column Form -->
+                <div class="card-panel indigo lighten-5" style="padding: 16px; margin-bottom: 20px;">
+                    <h6 style="margin: 0 0 12px 0; color: #5c6bc0; font-weight: 500;">Add New Column</h6>
+                    <form action="{{ route('table.addColumn', ['table' => $table]) }}" method="POST">
+                        @csrf
+                        <div class="row" style="margin-bottom: 0;">
+                            <div class="input-field col s4" style="margin-top: 0;">
+                                <input type="text" name="column_name" required pattern="[a-zA-Z0-9_]+" placeholder="Column Name">
+                            </div>
+                            <div class="input-field col s3" style="margin-top: 0;">
+                                <select name="column_type" required style="display: block;">
+                                    <option value="">Type</option>
+                                    <option value="INT">INT</option>
+                                    <option value="VARCHAR">VARCHAR</option>
+                                    <option value="TEXT">TEXT</option>
+                                    <option value="DATE">DATE</option>
+                                    <option value="DATETIME">DATETIME</option>
+                                    <option value="TIMESTAMP">TIMESTAMP</option>
+                                    <option value="BIGINT">BIGINT</option>
+                                    <option value="DECIMAL">DECIMAL</option>
+                                    <option value="BOOLEAN">BOOLEAN</option>
+                                </select>
+                            </div>
+                            <div class="input-field col s2" style="margin-top: 0;">
+                                <input type="text" name="column_length" placeholder="Length">
+                            </div>
+                            <div class="col s2" style="padding-top: 12px;">
+                                <label>
+                                    <input type="checkbox" name="nullable" value="1" checked />
+                                    <span style="font-size: 12px;">Nullable</span>
+                                </label>
+                            </div>
+                            <div class="col s1" style="padding-top: 5px;">
+                                <button type="submit" class="btn-small indigo lighten-1" style="padding: 0 12px;">
+                                    <i class="material-icons" style="font-size: 18px;">add</i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Existing Columns -->
+                <h6 style="color: #757575; font-size: 14px; font-weight: 600; margin-bottom: 10px;">Existing Columns:</h6>
+                @if(count($data) > 0)
+                    @foreach(array_keys((array)$data[0]) as $columnName)
+                        <div class="card-panel" style="padding: 12px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <strong style="color: #424242;">{{ $columnName }}</strong>
+                                </div>
+                                <div>
+                                    <button class="btn-small waves-effect waves-light red lighten-1" onclick="dropColumn('{{ $columnName }}')" style="padding: 0 12px;">
+                                        <i class="material-icons left" style="font-size: 16px;">delete</i>
+                                        Drop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <p style="text-align: center; color: #757575;">No columns to display (empty table)</p>
+                @endif
+
+                <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 16px 0 0 0; margin-top: 20px;">
+                    <button type="button" class="modal-close waves-effect waves-light btn-flat">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drop Column Form -->
+        <form id="dropColumnForm" method="POST" style="display: none;">
+            @csrf
+            <input type="hidden" id="drop_column_name" name="column_name">
+        </form>
+
+        <!-- Drop Table Form -->
+        <form id="dropTableForm" action="{{ route('table.drop', ['table' => $table]) }}" method="POST" style="display: none;">
+            @csrf
+        </form>
+
         <script>
             $(document).ready(function(){
                 // Initialize Material components
                 M.AutoInit();
+                
+                // Initialize modals
+                $('.modal').modal();
+                
+                // Initialize selects
+                $('select').formSelect();
             });
+
+            // Drop current table
+            function dropCurrentTable() {
+                if (confirm('Are you sure you want to drop table "{{ $table }}"? This action cannot be undone!')) {
+                    document.getElementById('dropTableForm').submit();
+                }
+            }
+
+            // Drop column
+            function dropColumn(columnName) {
+                if (confirm('Are you sure you want to drop column "' + columnName + '"? This action cannot be undone!')) {
+                    var form = document.getElementById('dropColumnForm');
+                    document.getElementById('drop_column_name').value = columnName;
+                    form.action = '{{ route("table.dropColumn", ["table" => $table]) }}';
+                    form.submit();
+                }
+            }
         </script>
     </body>
 </html>
