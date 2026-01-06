@@ -147,6 +147,12 @@ class DatabaseController extends Controller
             $dbName = session('current_database');
             DB::connection('temp_mysql')->statement('USE `' . str_replace('`', '``', $dbName) . '`');
             
+            // Get list of all tables for sidebar
+            $tablesResult = DB::connection('temp_mysql')->select('SHOW TABLES');
+            $tables = array_map(function($tableItem) {
+                return array_values((array)$tableItem)[0];
+            }, $tablesResult);
+            
             // Get table data (limit to 100 rows for performance)
             // Escape table name as well
             $escapedTable = str_replace('`', '``', $table);
@@ -158,6 +164,7 @@ class DatabaseController extends Controller
             return view('table', [
                 'table' => $table,
                 'data' => $data,
+                'tables' => $tables,
             ]);
         } catch (Exception $e) {
             return back()->with('error', 'Failed to load table: ' . $e->getMessage());

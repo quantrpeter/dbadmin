@@ -165,6 +165,9 @@
 
         <!-- Main Content -->
         <div class="main-container">
+            <x-table-sidebar :tables="$tables ?? []" :currentTable="$table" />
+
+            <!-- Main Content Area -->
             <main class="content-area">
                 @if(session('success'))
                     <div class="card-panel green lighten-4" style="padding: 15px; margin-bottom: 20px; border-radius: 4px;">
