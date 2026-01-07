@@ -150,15 +150,21 @@ class DatabaseController extends Controller
     /**
      * Show table data
      */
-    public function showTable($table)
+    public function showTable($database, $table)
     {
-        if (!session('db_connected') || !session('current_database')) {
-            return redirect()->route('login')->with('error', 'Please login and select a database first');
+        if (!session('db_connected')) {
+            return redirect()->route('login')->with('error', 'Please login first');
         }
 
         try {
             $this->setupConnection();
-            $dbName = session('current_database');
+            
+            // Ensure the database in URL matches session or update session
+            if (session('current_database') !== $database) {
+                session(['current_database' => $database]);
+            }
+            
+            $dbName = $database;
             DB::connection('temp_mysql')->statement('USE `' . str_replace('`', '``', $dbName) . '`');
             
             // Get list of all tables for sidebar
@@ -439,10 +445,10 @@ class DatabaseController extends Controller
     /**
      * Create a new table
      */
-    public function createTable(Request $request)
+    public function createTable(Request $request, $database)
     {
-        if (!session('db_connected') || !session('current_database')) {
-            return redirect()->route('login')->with('error', 'Please login and select a database first');
+        if (!session('db_connected')) {
+            return redirect()->route('login')->with('error', 'Please login first');
         }
 
         $request->validate([
@@ -458,7 +464,13 @@ class DatabaseController extends Controller
 
         try {
             $this->setupConnection();
-            $dbName = session('current_database');
+            
+            // Ensure the database in URL matches session or update session
+            if (session('current_database') !== $database) {
+                session(['current_database' => $database]);
+            }
+            
+            $dbName = $database;
             DB::connection('temp_mysql')->statement('USE `' . str_replace('`', '``', $dbName) . '`');
             
             $tableName = $request->input('table_name');
@@ -500,7 +512,7 @@ class DatabaseController extends Controller
             
             DB::connection('temp_mysql')->statement($sql);
             
-            return redirect()->route('database.table', ['table' => $tableName])
+            return redirect()->route('database.table', ['database' => $dbName, 'table' => $tableName])
                 ->with('success', "Table '{$tableName}' created successfully!");
         } catch (Exception $e) {
             return back()->with('error', 'Failed to create table: ' . $e->getMessage());
@@ -510,7 +522,7 @@ class DatabaseController extends Controller
     /**
      * Rename a table
      */
-    public function renameTable(Request $request, $table)
+    public function renameTable(Request $request, $database, $table)
     {
         if (!session('db_connected') || !session('current_database')) {
             return redirect()->route('login')->with('error', 'Please login and select a database first');
@@ -531,7 +543,7 @@ class DatabaseController extends Controller
             
             DB::connection('temp_mysql')->statement("RENAME TABLE `{$escapedOldTable}` TO `{$escapedNewTable}`");
             
-            return redirect()->route('database.table', ['table' => $newName])
+            return redirect()->route('database.table', ['database' => $database, 'table' => $newName])
                 ->with('success', "Table renamed from '{$table}' to '{$newName}'!");
         } catch (Exception $e) {
             return back()->with('error', 'Failed to rename table: ' . $e->getMessage());
@@ -541,7 +553,7 @@ class DatabaseController extends Controller
     /**
      * Drop a table
      */
-    public function dropTable($table)
+    public function dropTable($database, $table)
     {
         if (!session('db_connected') || !session('current_database')) {
             return redirect()->route('login')->with('error', 'Please login and select a database first');
@@ -565,7 +577,7 @@ class DatabaseController extends Controller
     /**
      * Add column to table
      */
-    public function addColumn(Request $request, $table)
+    public function addColumn(Request $request, $database, $table)
     {
         if (!session('db_connected') || !session('current_database')) {
             return redirect()->route('login')->with('error', 'Please login and select a database first');
@@ -612,7 +624,7 @@ class DatabaseController extends Controller
     /**
      * Modify column in table
      */
-    public function modifyColumn(Request $request, $table)
+    public function modifyColumn(Request $request, $database, $table)
     {
         if (!session('db_connected') || !session('current_database')) {
             return redirect()->route('login')->with('error', 'Please login and select a database first');
@@ -662,7 +674,7 @@ class DatabaseController extends Controller
     /**
      * Drop column from table
      */
-    public function dropColumn(Request $request, $table)
+    public function dropColumn(Request $request, $database, $table)
     {
         if (!session('db_connected') || !session('current_database')) {
             return redirect()->route('login')->with('error', 'Please login and select a database first');

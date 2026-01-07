@@ -25,33 +25,6 @@
                 padding: 0;
                 overflow: hidden;
             }
-            nav {
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                height: 64px !important;
-                line-height: normal !important;
-            }
-            .nav-wrapper {
-                height: 64px !important;
-                line-height: normal !important;
-                padding: 0 20px !important;
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-            }
-            .brand-icon {
-                width: 40px;
-                height: 40px;
-                background: #5c6bc0;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
             .main-container {
                 display: flex;
                 height: calc(100vh - 64px);
@@ -142,38 +115,27 @@
         </style>
     </head>
     <body>
-        <!-- Top Navigation Bar -->
-        <nav class="indigo lighten-1">
-            <div class="nav-wrapper">
-                <!-- Brand Icon and Title on Left -->
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="brand-icon">
-                        <i class="material-icons" style="color: white; font-size: 24px;">storage</i>
-                    </div>
-                    <span style="color: white; font-size: 18px; font-weight: 500;">DBAdmin</span>
-                </div>
-                
-                <!-- Right side navigation -->
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <button class="btn waves-effect waves-light white" onclick="$('#renameTableModal').modal('open')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
-                        <i class="material-icons left" style="line-height: inherit;">edit</i>
-                        Rename
-                    </button>
-                    <button class="btn waves-effect waves-light white" onclick="$('#manageColumnsModal').modal('open')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
-                        <i class="material-icons left" style="line-height: inherit;">view_column</i>
-                        Manage Columns
-                    </button>
-                    <button class="btn waves-effect waves-light red lighten-1" onclick="dropCurrentTable()" style="height: 36px; line-height: 36px; padding: 0 16px;">
-                        <i class="material-icons left" style="line-height: inherit;">delete</i>
-                        Drop Table
-                    </button>
-                    <a href="{{ route('database.main') }}" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
-                        <i class="material-icons left" style="line-height: inherit;">arrow_back</i>
-                        Back
-                    </a>
-                </div>
-            </div>
-        </nav>
+        @php
+            $customButtons = '
+                <button class="btn waves-effect waves-light white" onclick="$(\'#renameTableModal\').modal(\'open\')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                    <i class="material-icons left" style="line-height: inherit;">edit</i>
+                    Rename
+                </button>
+                <button class="btn waves-effect waves-light white" onclick="$(\'#manageColumnsModal\').modal(\'open\')" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                    <i class="material-icons left" style="line-height: inherit;">view_column</i>
+                    Manage Columns
+                </button>
+                <button class="btn waves-effect waves-light red lighten-1" onclick="dropCurrentTable()" style="height: 36px; line-height: 36px; padding: 0 16px;">
+                    <i class="material-icons left" style="line-height: inherit;">delete</i>
+                    Drop Table
+                </button>
+                <a href="' . route('database.main') . '" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                    <i class="material-icons left" style="line-height: inherit;">arrow_back</i>
+                    Back
+                </a>
+            ';
+        @endphp
+        <x-navbar pageTitle="{{ $table }}" :customButtons="$customButtons" />
 
         <!-- Main Content -->
         <div class="main-container">
@@ -267,7 +229,7 @@
                     <i class="material-icons" style="vertical-align: middle;">edit</i>
                     Rename Table
                 </h5>
-                <form action="{{ route('table.rename', ['table' => $table]) }}" method="POST">
+                <form action="{{ route('table.rename', ['database' => session('current_database'), 'table' => $table]) }}" method="POST">
                     @csrf
                     <div class="input-field">
                         <input id="current_table_name" type="text" value="{{ $table }}" disabled>
@@ -299,14 +261,14 @@
                 <!-- Add Column Form -->
                 <div class="card-panel indigo lighten-5" style="padding: 16px; margin-bottom: 20px;">
                     <h6 style="margin: 0 0 12px 0; color: #5c6bc0; font-weight: 500;">Add New Column</h6>
-                    <form action="{{ route('table.addColumn', ['table' => $table]) }}" method="POST">
+                    <form action="{{ route('table.addColumn', ['database' => session('current_database'), 'table' => $table]) }}" method="POST">
                         @csrf
                         <div class="row" style="margin-bottom: 0;">
                             <div class="input-field col s4" style="margin-top: 0;">
                                 <input type="text" name="column_name" required pattern="[a-zA-Z0-9_]+" placeholder="Column Name">
                             </div>
-                            <div class="input-field col s3" style="margin-top: 0;">
-                                <select name="column_type" required style="display: block;">
+                            <div class="col s3" style="margin-top: 0;">
+                                <select name="column_type" required class="browser-default" style="display: block; height: 35px; border: 1px solid #9e9e9e; border-radius: 4px; padding: 0 8px; background-color: white;">
                                     <option value="">Type</option>
                                     <option value="INT">INT</option>
                                     <option value="VARCHAR">VARCHAR</option>
@@ -372,7 +334,7 @@
         </form>
 
         <!-- Drop Table Form -->
-        <form id="dropTableForm" action="{{ route('table.drop', ['table' => $table]) }}" method="POST" style="display: none;">
+        <form id="dropTableForm" action="{{ route('table.drop', ['database' => session('current_database'), 'table' => $table]) }}" method="POST" style="display: none;">
             @csrf
         </form>
 
@@ -383,9 +345,6 @@
                 
                 // Initialize modals
                 $('.modal').modal();
-                
-                // Initialize selects
-                $('select').formSelect();
             });
 
             // Drop current table
@@ -400,7 +359,7 @@
                 if (confirm('Are you sure you want to drop column "' + columnName + '"? This action cannot be undone!')) {
                     var form = document.getElementById('dropColumnForm');
                     document.getElementById('drop_column_name').value = columnName;
-                    form.action = '{{ route("table.dropColumn", ["table" => $table]) }}';
+                    form.action = '{{ route("table.dropColumn", ["database" => session("current_database"), "table" => $table]) }}';
                     form.submit();
                 }
             }

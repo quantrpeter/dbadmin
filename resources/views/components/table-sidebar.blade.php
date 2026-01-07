@@ -47,7 +47,7 @@
             <div class="sidebar-title">Tables in {{ session('current_database') }}</div>
             @if(isset($tables) && count($tables) > 0)
                 @foreach($tables as $tableItem)
-                    <a href="{{ route('database.table', ['table' => $tableItem]) }}" class="sidebar-item {{ isset($currentTable) && $tableItem === $currentTable ? 'active' : '' }}">
+                    <a href="{{ route('database.table', ['database' => session('current_database'), 'table' => $tableItem]) }}" class="sidebar-item {{ isset($currentTable) && $tableItem === $currentTable ? 'active' : '' }}">
                         <i class="material-icons">table_chart</i>
                         <span>{{ $tableItem }}</span>
                     </a>

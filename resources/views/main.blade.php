@@ -25,118 +25,20 @@
                 padding: 0;
                 overflow: hidden;
             }
-            nav {
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                height: 64px !important;
-                line-height: normal !important;
+            /* Fix dropdown in modals */
+            .modal {
+                overflow: visible !important;
             }
-            .nav-wrapper {
-                height: 64px !important;
-                line-height: normal !important;
-                padding: 0 !important;
+            .modal-content {
+                overflow: visible !important;
             }
-            nav a {
-                line-height: normal !important;
-                height: auto !important;
-                padding: 0 !important;
-            }
-            .brand-icon {
-                width: 40px;
-                height: 40px;
-                background: #5c6bc0;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            nav .select-wrapper {
-                margin: 0 !important;
-            }
-            nav .select-wrapper input.select-dropdown {
-                box-sizing: border-box !important;
-                color: white !important;
-                border: 1px solid rgba(255,255,255,0.5) !important;
-                border-radius: 4px !important;
-                margin: 0 !important;
-                height: 36px !important;
-                line-height: 36px !important;
-                padding: 0 30px 0 10px !important;
-                background-color: rgba(255,255,255,0.1) !important;
-                text-indent: 0 !important;
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-            }
-            nav .select-wrapper input.select-dropdown:focus {
-                border-color: white !important;
-                background-color: rgba(255,255,255,0.15) !important;
-            }
-            nav .select-wrapper .caret {
-                fill: white !important;
-                right: 8px !important;
-            }
-            nav .select-wrapper ul.dropdown-content {
-                top: 40px !important;
-            }
-            nav .select-wrapper ul.dropdown-content li {
-                min-height: 36px !important;
-                line-height: 36px !important;
-                display: flex !important;
-                align-items: center !important;
-            }
-            nav .select-wrapper ul.dropdown-content li > span {
-                padding: 0 12px !important;
-                display: block !important;
-                line-height: 1.5 !important;
-            }
-            nav .btn {
-                height: 36px !important;
-                line-height: 36px !important;
-                margin: 0 !important;
-                padding: 0 16px !important;
-            }
-            nav .btn i {
-                line-height: 36px !important;
-                height: 36px !important;
-            }
-            nav form {
-                display: flex !important;
-                align-items: center !important;
-            }
-            nav span, nav div {
-                line-height: normal !important;
-            }
-            .nav-wrapper > div {
-                flex-shrink: 0 !important;
-            }
-            .nav-wrapper > div > * {
-                white-space: nowrap !important;
-            }
-            .status-badge {
-                display: inline-flex !important;
-                align-items: center !important;
-                padding: 6px 12px !important;
-                background: #4caf50 !important;
-                color: white !important;
-                border-radius: 16px !important;
-                font-size: 12px !important;
-                height: 28px !important;
-                line-height: 1 !important;
-                white-space: nowrap !important;
-                margin: 0 !important;
-            }
-            .status-dot {
-                width: 6px;
-                height: 6px;
-                background: white;
-                border-radius: 50%;
-                margin-right: 6px;
-                flex-shrink: 0;
+            .modal .select-wrapper ul.dropdown-content {
+                position: fixed !important;
+                z-index: 9999 !important;
+                max-height: 300px !important;
+                overflow-y: auto !important;
+                width: auto !important;
+                min-width: 100px !important;
             }
             .main-container {
                 display: flex;
@@ -236,63 +138,7 @@
         </style>
     </head>
     <body>
-        <!-- Top Navigation Bar -->
-        <nav class="indigo lighten-1">
-            <div class="nav-wrapper" style="display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 0 20px !important; height: 64px !important;">
-                <!-- Brand Icon and Title on Left -->
-                <div style="display: flex !important; align-items: center !important; gap: 10px !important; flex-shrink: 0 !important;">
-                    <div class="brand-icon">
-                        <i class="material-icons" style="color: white; font-size: 24px;">storage</i>
-                    </div>
-                    <span style="color: white; font-size: 18px; font-weight: 500;">DBAdmin</span>
-                </div>
-                
-                <!-- Right side navigation -->
-                <div style="display: flex !important; align-items: center !important; gap: 15px !important; flex-shrink: 0 !important;">
-                    <!-- Connection Status -->
-                    <span class="status-badge">
-                        <span class="status-dot"></span>
-                        Connected
-                    </span>
-                    
-                    <!-- Connection Info -->
-                    <span style="color: rgba(255,255,255,0.9); font-size: 13px;">
-                        {{ session('db_username') }} @ {{ session('db_host') }} : {{ session('db_port') }}
-                    </span>
-                    
-                    <!-- Database Dropdown -->
-                    @if(isset($databases) && count($databases) > 0)
-                        <div style="display: inline-block; width: 280px; position: relative; flex-shrink: 0;">
-                            <select id="database-select">
-                                <option value="" disabled {{ !session('current_database') ? 'selected' : '' }}>Select Database</option>
-                                @foreach($databases as $database)
-                                    <option value="{{ $database }}" {{ session('current_database') === $database ? 'selected' : '' }}>{{ $database }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-                    
-                    <!-- Deselect Database Button -->
-                    @if(session('current_database'))
-                        <form action="{{ route('database.deselect') }}" method="POST" style="margin: 0; flex-shrink: 0;">
-                            @csrf
-                            <button type="submit" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;" title="Deselect current database">
-                                <i class="material-icons" style="line-height: inherit;">close</i>
-                            </button>
-                        </form>
-                    @endif
-                    
-                    <!-- Disconnect Button -->
-                    <form action="{{ route('database.disconnect') }}" method="POST" style="margin: 0; flex-shrink: 0;">
-                        @csrf
-                        <button type="submit" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
-                            <i class="material-icons left" style="line-height: inherit;">power_settings_new</i>
-                            Disconnect
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </nav>
+        <x-navbar :databases="$databases ?? []" />
 
         <!-- Main Content -->
         <div class="main-container">
@@ -363,7 +209,7 @@
                                     <p>Remove a database</p>
                                 </div>
                             </div>
-                        </div>
+                            atabase management and operations        </div>
 
                         <!-- Available Databases -->
                         <div class="info-card">
@@ -438,7 +284,7 @@
                                                     <span style="font-weight: 500;">{{ $table }}</span>
                                                 </td>
                                                 <td class="table-actions">
-                                                    <a href="{{ route('database.table', ['table' => $table]) }}">Browse</a>
+                                                    <a href="{{ route('database.table', ['database' => session('current_database'), 'table' => $table]) }}">Browse</a>
                                                     <a href="#" onclick="event.preventDefault(); dropTableFromList('{{ $table }}')" class="delete">Drop</a>
                                                 </td>
                                             </tr>
@@ -461,8 +307,8 @@
         </div>
 
         <!-- Create Database Modal -->
-        <div id="createDatabaseModal" class="modal" style="max-width: 500px;">
-            <div class="modal-content">
+        <div id="createDatabaseModal" class="modal" style="max-width: 500px; overflow: visible;">
+            <div class="modal-content" style="overflow: visible;">
                 <h5 style="margin-top: 0; color: #5c6bc0;">
                     <i class="material-icons" style="vertical-align: middle;">add_circle</i>
                     Create New Database
@@ -501,8 +347,8 @@
         </div>
 
         <!-- Drop Database Modal -->
-        <div id="dropDatabaseModal" class="modal" style="max-width: 500px;">
-            <div class="modal-content">
+        <div id="dropDatabaseModal" class="modal" style="max-width: 500px; overflow: visible;">
+            <div class="modal-content" style="overflow: visible;">
                 <h5 style="margin-top: 0; color: #f44336;">
                     <i class="material-icons" style="vertical-align: middle;">warning</i>
                     Drop Database
@@ -510,7 +356,7 @@
                 <p style="color: #757575;">Select a database to permanently delete. This action cannot be undone!</p>
                 <form id="dropDatabaseForm" method="POST">
                     @csrf
-                    <div class="input-field">
+                    <div class="input-field" style="overflow: visible;">
                         <select id="drop_database_select" name="database" required>
                             <option value="" disabled selected>Choose database</option>
                             @if(isset($databases))
@@ -538,8 +384,9 @@
                     <i class="material-icons" style="vertical-align: middle;">table_chart</i>
                     Create New Table
                 </h5>
-                <form action="{{ route('table.create') }}" method="POST" id="createTableForm">
+                <form action="" method="POST" id="createTableForm">
                     @csrf
+                    <input type="hidden" id="createTableDatabase" name="database" value="{{ session('current_database') }}">
                     <div class="input-field">
                         <input id="table_name" name="table_name" type="text" required pattern="[a-zA-Z0-9_]+" maxlength="64">
                         <label for="table_name">Table Name</label>
@@ -551,11 +398,13 @@
                         <!-- Initial column row -->
                         <div class="column-row" style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 8px; position: relative;">
                             <div class="row" style="margin-bottom: 0;">
-                                <div class="input-field col s3" style="margin-top: 0;">
-                                    <input type="text" name="columns[0][name]" required placeholder="Column Name" style="margin-bottom: 0;">
+                                <div class="col s3">
+                                    <label style="font-size: 11px; color: #9e9e9e;">Column Name</label>
+                                    <input type="text" name="columns[0][name]" required style="margin-bottom: 0; margin-top: 2px; height: 35px;">
                                 </div>
-                                <div class="input-field col s3" style="margin-top: 0;">
-                                    <select name="columns[0][type]" required style="display: block;">
+                                <div class="col s3">
+                                    <label style="font-size: 11px; color: #9e9e9e;">Type</label>
+                                    <select name="columns[0][type]" required class="browser-default" style="display: block; margin-top: 2px; height: 35px; border: 1px solid #9e9e9e; border-radius: 4px; padding: 0 8px; background-color: white;">
                                         <option value="INT">INT</option>
                                         <option value="VARCHAR">VARCHAR</option>
                                         <option value="TEXT">TEXT</option>
@@ -567,10 +416,11 @@
                                         <option value="BOOLEAN">BOOLEAN</option>
                                     </select>
                                 </div>
-                                <div class="input-field col s2" style="margin-top: 0;">
-                                    <input type="text" name="columns[0][length]" placeholder="Length" style="margin-bottom: 0;">
+                                <div class="col s2">
+                                    <label style="font-size: 11px; color: #9e9e9e;">Length</label>
+                                    <input type="text" name="columns[0][length]" style="margin-bottom: 0; margin-top: 2px; height: 35px;">
                                 </div>
-                                <div class="col s4" style="padding-top: 10px;">
+                                <div class="col s4" style="padding-top: 20px;">
                                     <p style="margin: 0 0 5px 0;">
                                         <label>
                                             <input type="checkbox" name="columns[0][nullable]" value="1" />
@@ -616,8 +466,8 @@
                 // Initialize modals
                 $('.modal').modal();
                 
-                // Initialize dropdown for database selection
-                $('select').formSelect();
+                // Initialize dropdown for database selection (exclude modal selects)
+                $('#database-select, #drop_database_select, #charset, #collation').formSelect();
                 
                 // Fix dropdown padding issue - remove extra spaces
                 setTimeout(function() {
@@ -634,7 +484,7 @@
                 $('#database-select').on('change', function() {
                     var selectedDb = $(this).val();
                     if (selectedDb) {
-                        window.location.href = '{{ url("/database") }}/' + encodeURIComponent(selectedDb);
+                        window.location.href = '{{ url("/main/database") }}/' + encodeURIComponent(selectedDb);
                     }
                 });
                 
@@ -643,8 +493,19 @@
                     e.preventDefault();
                     var database = $('#drop_database_select').val();
                     if (database && confirm('Are you sure you want to drop database "' + database + '"? This action cannot be undone!')) {
-                        this.action = '{{ url("/database") }}/' + encodeURIComponent(database) + '/drop';
+                        this.action = '{{ url("/main/database") }}/' + encodeURIComponent(database) + '/drop';
                         this.submit();
+                    }
+                });
+                
+                // Handle create table form submission
+                $('#createTableForm').on('submit', function(e) {
+                    var database = $('#createTableDatabase').val();
+                    if (database) {
+                        this.action = '{{ url("/main/database") }}/' + encodeURIComponent(database) + '/table/create';
+                    } else {
+                        e.preventDefault();
+                        alert('Please select a database first');
                     }
                 });
                 
@@ -664,7 +525,7 @@
                 if (confirm('Are you sure you want to drop database "' + database + '"? This action cannot be undone!')) {
                     var form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = '{{ url("/database") }}/' + encodeURIComponent(database) + '/drop';
+                    form.action = '{{ url("/main/database") }}/' + encodeURIComponent(database) + '/drop';
                     
                     var csrfToken = document.createElement('input');
                     csrfToken.type = 'hidden';
@@ -682,7 +543,7 @@
                 if (confirm('Are you sure you want to drop table "' + table + '"? This action cannot be undone!')) {
                     var form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = '{{ url("/table") }}/' + encodeURIComponent(table) + '/drop';
+                    form.action = '{{ url("/main/database") }}/' + encodeURIComponent('{{ session("current_database") }}') + '/' + encodeURIComponent(table) + '/drop';
                     
                     var csrfToken = document.createElement('input');
                     csrfToken.type = 'hidden';
@@ -707,11 +568,13 @@
                 
                 newRow.innerHTML = `
                     <div class="row" style="margin-bottom: 0;">
-                        <div class="input-field col s3" style="margin-top: 0;">
-                            <input type="text" name="columns[${columnRowCount}][name]" required placeholder="Column Name" style="margin-bottom: 0;">
+                        <div class="col s3">
+                            <label style="font-size: 11px; color: #9e9e9e;">Column Name</label>
+                            <input type="text" name="columns[${columnRowCount}][name]" required style="margin-bottom: 0; margin-top: 2px; height: 35px;">
                         </div>
-                        <div class="input-field col s3" style="margin-top: 0;">
-                            <select name="columns[${columnRowCount}][type]" required style="display: block;">
+                        <div class="col s3">
+                            <label style="font-size: 11px; color: #9e9e9e;">Type</label>
+                            <select name="columns[${columnRowCount}][type]" required class="browser-default" style="display: block; margin-top: 2px; height: 35px; border: 1px solid #9e9e9e; border-radius: 4px; padding: 0 8px; background-color: white;">
                                 <option value="INT">INT</option>
                                 <option value="VARCHAR">VARCHAR</option>
                                 <option value="TEXT">TEXT</option>
@@ -723,10 +586,11 @@
                                 <option value="BOOLEAN">BOOLEAN</option>
                             </select>
                         </div>
-                        <div class="input-field col s2" style="margin-top: 0;">
-                            <input type="text" name="columns[${columnRowCount}][length]" placeholder="Length" style="margin-bottom: 0;">
+                        <div class="col s2">
+                            <label style="font-size: 11px; color: #9e9e9e;">Length</label>
+                            <input type="text" name="columns[${columnRowCount}][length]" style="margin-bottom: 0; margin-top: 2px; height: 35px;">
                         </div>
-                        <div class="col s3" style="padding-top: 10px;">
+                        <div class="col s3" style="padding-top: 20px;">
                             <p style="margin: 0 0 5px 0;">
                                 <label>
                                     <input type="checkbox" name="columns[${columnRowCount}][nullable]" value="1" />
@@ -746,7 +610,7 @@
                                 </label>
                             </p>
                         </div>
-                        <div class="col s1" style="padding-top: 10px;">
+                        <div class="col s1" style="padding-top: 20px;">
                             <button type="button" class="btn-small red lighten-1" onclick="this.closest('.column-row').remove()" style="padding: 0 8px;">
                                 <i class="material-icons" style="font-size: 18px;">delete</i>
                             </button>
@@ -756,9 +620,6 @@
                 
                 container.appendChild(newRow);
                 columnRowCount++;
-                
-                // Reinitialize selects
-                $('select').formSelect();
             }
         </script>
     </body>

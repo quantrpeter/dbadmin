@@ -25,33 +25,6 @@
                 padding: 0;
                 overflow: hidden;
             }
-            nav {
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-                height: 64px !important;
-                line-height: normal !important;
-            }
-            .nav-wrapper {
-                height: 64px !important;
-                line-height: normal !important;
-                padding: 0 20px !important;
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-            }
-            .brand-icon {
-                width: 40px;
-                height: 40px;
-                background: #5c6bc0;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
             .main-container {
                 height: calc(100vh - 64px);
                 margin-top: 64px;
@@ -170,26 +143,15 @@
         </style>
     </head>
     <body>
-        <!-- Top Navigation Bar -->
-        <nav class="indigo lighten-1">
-            <div class="nav-wrapper">
-                <!-- Brand Icon and Title on Left -->
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="brand-icon">
-                        <i class="material-icons" style="color: white; font-size: 24px;">storage</i>
-                    </div>
-                    <span style="color: white; font-size: 18px; font-weight: 500;">DBAdmin - User Management</span>
-                </div>
-                
-                <!-- Right side navigation -->
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <a href="{{ route('database.main') }}" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
-                        <i class="material-icons left" style="line-height: inherit;">arrow_back</i>
-                        Back to Dashboard
-                    </a>
-                </div>
-            </div>
-        </nav>
+        @php
+            $customButtons = '
+                <a href="' . route('database.main') . '" class="btn waves-effect waves-light white" style="color: #5c6bc0; height: 36px; line-height: 36px; padding: 0 16px;">
+                    <i class="material-icons left" style="line-height: inherit;">arrow_back</i>
+                    Back to Dashboard
+                </a>
+            ';
+        @endphp
+        <x-navbar pageTitle="User Management" :customButtons="$customButtons" />
 
         <!-- Main Content -->
         <div class="main-container">
